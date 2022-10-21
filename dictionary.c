@@ -2,7 +2,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
-
+#include <stdio.h>
 #include "dictionary.h"
 
 // Represents a node in a hash table
@@ -30,13 +30,59 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
     // TODO: Improve this hash function
-    return toupper(word[0]) - 'A';
+    return toupper(word[0] - 'A');
 }
 
 // Loads dictionary into memory, returning true if successful, else false
 bool load(const char *dictionary)
 {
     // TODO
+
+    // Open the input file
+    FILE *input = fopen(dictionary, "r");
+    if (input == NULL)
+    {
+        print("Could not open file.");
+        return false;
+    }
+
+    for (int i = 0; i <= N; i++)
+    {
+        table[i]->next = NULL;
+        strcpy(table[i]->word, i);
+    }
+    
+    char tmp[LENGTH + 1];
+
+    // Iterate through the entire input file
+    while (fscanf(input, "%s", tmp) != EOF)
+    {
+        // Create a new node for each word
+        node *map_word = malloc(sizeof(node));
+        if (map_word == NULL)
+        {
+            print("Could not allocate memory.\n");
+            return false;
+        }
+        // Copy the word into the node
+        strcpy(map_word->word, tmp);
+        map_word->next = NULL;
+
+        // Hash word to obtain hash value
+        unsigned int to_hash = hash(tmp);
+
+        // Insert node at the hash table at that location
+        if (table[to_hash] == NULL)
+        {
+            map_word->next = table[to_hash];
+        }
+        else
+        {
+            // TODO
+            map_word->next = table[to_hash]->next;
+        }   
+    }
+
     return false;
 }
 
