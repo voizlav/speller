@@ -3,6 +3,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include "dictionary.h"
 
@@ -34,7 +36,6 @@ bool check(const char *word)
     {
         return false;
     }
-
     // Traverse through linked list in table
     while (checker != NULL)
     {
@@ -43,11 +44,9 @@ bool check(const char *word)
         {
             return true;
         }
-
-        // Keep moving
+        // Keep moving pointer
         checker = checker->next;
     }
-
     return false;
 }
 
@@ -55,40 +54,36 @@ bool check(const char *word)
 unsigned int hash(const char *word)
 {
     // TODO: Improve this hash function
-    return toupper(word[0] - 'A');
+    return toupper(word[0]) - 'A';
 }
 
 // Loads dictionary into memory, returning true if successful, else false
 bool load(const char *dictionary)
 {
-    // TODO
+    unsigned int to_hash;
 
     // Open the input file
     FILE *input = fopen(dictionary, "r");
     if (input == NULL)
     {
-        print("Could not open file.\n");
+        printf("Could not open file.\n");
         return false;
     }
 
-    for (int i = 0; i <= N; i++)
-    {
-        table[i]->next = NULL;
-        strcpy(table[i]->word, i);
-    }
-    
-
+    // Declare a temporary variable for word
     char tmp[LENGTH + 1];
 
     // Iterate through the entire input file
     while (fscanf(input, "%s", tmp) != EOF)
     {
+        // Count words in input file
         word_counter++;
+
         // Create a new node for each word
         node *map_word = malloc(sizeof(node));
         if (map_word == NULL)
         {
-            print("Could not allocate memory for map_word.\n");
+            printf("Could not allocate memory.\n");
             return false;
         }
         // Copy the word into the node
@@ -96,46 +91,44 @@ bool load(const char *dictionary)
         map_word->next = NULL;
 
         // Hash word to obtain hash value
-        unsigned int to_hash = hash(tmp);
+        to_hash = hash(tmp);
 
-        // Insert node at the hash table at that location
-        if (table[to_hash] == NULL)
-        {
-            table[to_hash]->next = map_word;
-        }
-        else
-        {
-            map_word->next = table[to_hash]->next;
-            table[to_hash]->next = map_word;
-        }   
+        // Insert node at the hash table
+        map_word->next = table[to_hash];
+        table[to_hash] = map_word;
     }
-
-    return false;
+    // Close input
+    fclose(input);
+    return true;
 }
 
 // Returns number of words in dictionary if loaded, else 0 if not yet loaded
 unsigned int size(void)
 {
-    // TODO
     return word_counter;
 }
 
 // Unloads dictionary from memory, returning true if successful, else false
 bool unload(void)
 {
+    // Go through the entire table one hash per iteration
     for (int i = 0; i < N; i++)
     {
+        // Define checker for the current hash
         node *checker = table[i];
 
+        // Iterate through the current hash
         while (checker != NULL)
         {
+            // Temporarily variable
             node *tmp = checker;
+
+            // Keep moving pointer
             checker = checker->next;
+
+            // Free memory
             free(tmp);
         }
-        
-        return true;
     }
-    
-    return false;
+    return true;
 }
