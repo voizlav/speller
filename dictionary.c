@@ -3,6 +3,7 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <strings.h>
 #include "dictionary.h"
 
 // Represents a node in a hash table
@@ -19,10 +20,34 @@ const unsigned int N = 26;
 // Hash table
 node *table[N];
 
+// Count words in dictionary
+int word_counter = 0;
+
 // Returns true if word is in dictionary, else false
 bool check(const char *word)
 {
-    // TODO
+    // Hash input word
+    unsigned int to_hash = hash(word);
+
+    node *checker = table[to_hash];
+    if (checker == NULL)
+    {
+        return false;
+    }
+
+    // Traverse through linked list in table
+    while (checker != NULL)
+    {
+        // Compare input word with the word from the list
+        if (strcasecmp(checker->word, word) == 0)
+        {
+            return true;
+        }
+
+        // Keep moving
+        checker = checker->next;
+    }
+
     return false;
 }
 
@@ -42,7 +67,7 @@ bool load(const char *dictionary)
     FILE *input = fopen(dictionary, "r");
     if (input == NULL)
     {
-        print("Could not open file.");
+        print("Could not open file.\n");
         return false;
     }
 
@@ -52,16 +77,18 @@ bool load(const char *dictionary)
         strcpy(table[i]->word, i);
     }
     
+
     char tmp[LENGTH + 1];
 
     // Iterate through the entire input file
     while (fscanf(input, "%s", tmp) != EOF)
     {
+        word_counter++;
         // Create a new node for each word
         node *map_word = malloc(sizeof(node));
         if (map_word == NULL)
         {
-            print("Could not allocate memory.\n");
+            print("Could not allocate memory for map_word.\n");
             return false;
         }
         // Copy the word into the node
@@ -74,12 +101,12 @@ bool load(const char *dictionary)
         // Insert node at the hash table at that location
         if (table[to_hash] == NULL)
         {
-            map_word->next = table[to_hash];
+            table[to_hash]->next = map_word;
         }
         else
         {
-            // TODO
             map_word->next = table[to_hash]->next;
+            table[to_hash]->next = map_word;
         }   
     }
 
@@ -90,12 +117,25 @@ bool load(const char *dictionary)
 unsigned int size(void)
 {
     // TODO
-    return 0;
+    return word_counter;
 }
 
 // Unloads dictionary from memory, returning true if successful, else false
 bool unload(void)
 {
-    // TODO
+    for (int i = 0; i < N; i++)
+    {
+        node *checker = table[i];
+
+        while (checker != NULL)
+        {
+            node *tmp = checker;
+            checker = checker->next;
+            free(tmp);
+        }
+        
+        return true;
+    }
+    
     return false;
 }
